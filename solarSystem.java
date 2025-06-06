@@ -1,3 +1,4 @@
+// Import JOGL and Java Swing classes
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.FPSAnimator;
@@ -8,13 +9,15 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class SolarSystem implements GLEventListener {
-    private float angle = 0.0f;
-    private final GLU glu = new GLU();
-    private final ArrayList<Star> stars = new ArrayList<>();
 
-    private long lastStarUpdateTime = System.currentTimeMillis();
-    private final long starUpdateInterval = 5000; // 5 seconds
-    private final Random rand = new Random();
+    private float angle = 0.0f;              // Used to animate planetary rotation
+    private final GLU glu = new GLU();       
+    private final ArrayList<Star> stars = new ArrayList<>();  
+
+    private long lastStarUpdateTime = System.currentTimeMillis();  
+    private final long starUpdateInterval = 5000;  // Update stars every 5 seconds
+    private final Random rand = new Random();      // For generating random star positions
+
 
     private static class Star {
         float x, y, brightness;
@@ -32,6 +35,7 @@ public class SolarSystem implements GLEventListener {
             System.exit(1);
         }
 
+
         GLProfile profile;
         try {
             profile = GLProfile.get(GLProfile.GL2);
@@ -44,53 +48,57 @@ public class SolarSystem implements GLEventListener {
         GLCanvas canvas = new GLCanvas(capabilities);
 
         SolarSystem solarSystem = new SolarSystem();
-        canvas.addGLEventListener(solarSystem);
+        canvas.addGLEventListener(solarSystem); 
         canvas.setSize(800, 600);
 
         JFrame frame = new JFrame("Enhanced JOGL Solar System");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(canvas);
         frame.pack();
-        frame.setLocationRelativeTo(null);
+        frame.setLocationRelativeTo(null); 
         frame.setVisible(true);
 
         FPSAnimator animator = new FPSAnimator(canvas, 60, true);
         animator.start();
     }
 
+
     @Override
     public void init(GLAutoDrawable drawable) {
         GL2 gl = drawable.getGL().getGL2();
-        gl.glClearColor(0f, 0f, 0.05f, 1f);
-        gl.glEnable(GL2.GL_DEPTH_TEST);
-        gl.glEnable(GL2.GL_POINT_SMOOTH);
-
-        generateStars(); // Initialize stars
+        gl.glClearColor(0f, 0f, 0.05f, 1f); 
+        gl.glEnable(GL2.GL_DEPTH_TEST);     
+        gl.glEnable(GL2.GL_POINT_SMOOTH);   
+        generateStars();                    
     }
+
 
     @Override
     public void dispose(GLAutoDrawable drawable) {}
 
+
     @Override
     public void display(GLAutoDrawable drawable) {
         GL2 gl = drawable.getGL().getGL2();
+
         gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
         gl.glLoadIdentity();
 
         glu.gluLookAt(0, 0, 3.0, 0, 0, 0, 0, 1, 0);
 
-        // Update stars every 5 seconds
+
+        // Update stars every few seconds
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastStarUpdateTime >= starUpdateInterval) {
-            generateStars(); // Reposition and change brightness
+            generateStars();
             lastStarUpdateTime = currentTime;
         }
 
-        drawStars(gl);
+        drawStars(gl); 
 
-        // Sun with glow
-        drawCircle(gl, 0f, 0f, 0.25f, new float[]{1f, 0.5f, 0.0f}); // Outer glow
-        drawCircle(gl, 0f, 0f, 0.2f, new float[]{1f, 0.8f, 0.0f});  // Core
+        // Sun with glowing effect
+        drawCircle(gl, 0f, 0f, 0.25f, new float[]{1f, 0.5f, 0.0f}); 
+        drawCircle(gl, 0f, 0f, 0.2f, new float[]{1f, 0.8f, 0.0f});  
 
         // Mercury
         drawOrbit(gl, 0.4f);
@@ -100,12 +108,13 @@ public class SolarSystem implements GLEventListener {
         drawOrbit(gl, 0.55f);
         drawPlanet(gl, 0.55f, angle * 1.5f, 0.06f, new float[]{1f, 0.8f, 0.6f});
 
-        // Earth + Moon
+        // Earth and Moon
         drawOrbit(gl, 0.7f);
         float earthX = (float) Math.cos(Math.toRadians(angle)) * 0.7f;
         float earthY = (float) Math.sin(Math.toRadians(angle)) * 0.7f;
         drawCircle(gl, earthX, earthY, 0.07f, new float[]{0.2f, 0.5f, 1f});
 
+        // Moon revolving around Earth
         float moonAngle = angle * 5f;
         float moonX = earthX + (float) Math.cos(Math.toRadians(moonAngle)) * 0.1f;
         float moonY = earthY + (float) Math.sin(Math.toRadians(moonAngle)) * 0.1f;
@@ -126,16 +135,17 @@ public class SolarSystem implements GLEventListener {
 
         gl.glMatrixMode(GL2.GL_PROJECTION);
         gl.glLoadIdentity();
-        glu.gluPerspective(45.0f, aspect, 1.0, 10.0);
+        glu.gluPerspective(45.0f, aspect, 1.0, 10.0); 
         gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glLoadIdentity();
     }
+
 
     private void drawCircle(GL2 gl, float cx, float cy, float radius, float[] color) {
         int numSegments = 100;
         gl.glColor3fv(color, 0);
         gl.glBegin(GL2.GL_TRIANGLE_FAN);
-        gl.glVertex2f(cx, cy);
+        gl.glVertex2f(cx, cy); // Center
         for (int i = 0; i <= numSegments; i++) {
             double angle = 2 * Math.PI * i / numSegments;
             float x = cx + (float) Math.cos(angle) * radius;
@@ -145,6 +155,7 @@ public class SolarSystem implements GLEventListener {
         gl.glEnd();
     }
 
+    // Draws a planet at its orbit radius and current angle
     private void drawPlanet(GL2 gl, float orbitRadius, float angleDeg, float size, float[] color) {
         double rad = Math.toRadians(angleDeg);
         float x = (float) Math.cos(rad) * orbitRadius;
@@ -152,6 +163,7 @@ public class SolarSystem implements GLEventListener {
         drawCircle(gl, x, y, size, color);
     }
 
+    // Draws an orbit ring
     private void drawOrbit(GL2 gl, float radius) {
         gl.glColor3f(0.5f, 0.5f, 0.5f);
         gl.glBegin(GL2.GL_LINE_LOOP);
@@ -164,6 +176,7 @@ public class SolarSystem implements GLEventListener {
         gl.glEnd();
     }
 
+    // Renders all stars in the background
     private void drawStars(GL2 gl) {
         gl.glPointSize(1.5f);
         gl.glBegin(GL2.GL_POINTS);
@@ -174,12 +187,13 @@ public class SolarSystem implements GLEventListener {
         gl.glEnd();
     }
 
+    // Randomly generates star positions and brightness
     private void generateStars() {
         stars.clear();
         for (int i = 0; i < 50; i++) {
-            float x = rand.nextFloat() * 3.0f - 1.5f;
-            float y = rand.nextFloat() * 3.0f - 1.5f;
-            float brightness = rand.nextFloat() * 0.5f + 0.5f;
+            float x = rand.nextFloat() * 3.0f - 1.5f;   // Random X in range [-1.5, 1.5]
+            float y = rand.nextFloat() * 3.0f - 1.5f;   // Random Y in range [-1.5, 1.5]
+            float brightness = rand.nextFloat() * 0.5f + 0.5f; // Brightness [0.5, 1.0]
             stars.add(new Star(x, y, brightness));
         }
     }
